@@ -1,14 +1,15 @@
-name: Greetings
-
-on: [issues]
+name: Auto-Respond to Issues
+on:
+  issues:
+    types: [opened]
 
 jobs:
-  greeting:
+  respond:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
-    - uses: actions-ecosystem/action-create-comment@v1
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        issue-message: "Hello ${{ github.event.issue.user.login }} :wave:, thanks for opening this issue!"
+      - name: Comment on the new issue
+        uses: actions-ecosystem/action-add-comment@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          issue_number: ${{ github.event.issue.number }}
+          body: "Hello @${{ github.event.issue.user.login }}, thanks for opening this issue!"
