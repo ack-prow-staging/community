@@ -1,16 +1,35 @@
-name: Comment on Every New Issue
+name: Add SLA Comment to Issues
+
 on:
   issues:
     types: [opened]
 
 jobs:
-  respond:
+  add-sla-comment:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
     steps:
-      - name: Comment on the new issue
-        uses: actions/first-interaction@34f15e814fe48ac9312ccf29db4e74fa767cbab7
+      - name: Add SLA comment
+        uses: actions/github-script@v6
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          issue-message: Hello @${{ github.event.issue.user.login }}! Thanks for opening this new issue.
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const issueNumber = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            const slaMessage = `
+            Thank you for submitting this issue. Our team is committed to providing timely responses:
+            
+            - Initial response: Within 24 hours
+            - Status update: Every 48 hours
+            - Resolution target: Within 5 business days
+            
+            We appreciate your patience as we work to address your concern.
+            `;
+            
+            await github.rest.issues.createComment({
+              owner: owner,
+              repo: repo,
+              issue_number: issueNumber,
+              body: slaMessage
+            });
