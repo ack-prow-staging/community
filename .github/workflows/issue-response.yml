@@ -13,7 +13,4 @@ jobs:
         uses: actions/first-interaction@34f15e814fe48ac9312ccf29db4e74fa767cbab7
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            Hello @${{ github.event.issue.user.login }}! 
-            Thanks for opening this new issue.
+          issue-message: Hello @${{ github.event.issue.user.login }}! Thanks for opening this new issue.
