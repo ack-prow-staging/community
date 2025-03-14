@@ -1,4 +1,4 @@
-name: Add SLA Comment to Issues
+name: Issue Responder
 
 on:
   issues:
@@ -19,17 +19,14 @@ jobs:
             const issueNumber = context.issue.number;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            
-            const slaMessage = `
-            Thank you for submitting this issue. Our team is committed to providing timely responses:
-            
-            - Initial response: Within 24 hours
-            - Status update: Every 48 hours
-            - Resolution target: Within 5 business days
-            
-            We appreciate your patience as we work to address your concern.
-            `;
-            
+
+            // Get the username of the issue opener
+            const username = context.payload.issue.user.login;
+
+            // Your markdown message
+            const slaMessage = `Hello @${username} 👋 Thank you for opening an issue in ACK! The team will review the issue and aim to respond within 1-5 business days. Meanwhile, please read about the [Contribution](https://github.com/aws-controllers-k8s/community/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/aws-controllers-k8s/community/blob/main/CODE_OF_CONDUCT.md) guidelines. You can find out more information about ACK on our [website](https://aws-controllers-k8s.github.io/community/).`;
+
+            // Create the comment on the opened issue
             await github.rest.issues.createComment({
               owner: owner,
               repo: repo,
