@@ -11,27 +11,43 @@ jobs:
   add-sla-comment:
     runs-on: ubuntu-latest
     steps:
-      - name: Add Comment
+      - name: Check if issue opener is an org member
+        id: check_membership
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const username = context.payload.issue.user.login;
+            const org = context.repo.owner;
+            console.log("Checking membership for user:", username, "in org:", org);
+            try {
+              const response = await github.rest.orgs.checkMembershipForUser({
+                org: org,
+                username: username
+              });
+              console.log("Membership check status:", response.status);
+              // If response.status is 204, user is a member
+              return response.status === 204;
+            } catch (error) {
+              console.log("Error during membership check:", error);
+              // If there's an error, assume the user is not a member
+              return false;
+            }
+      - name: Add SLA Comment if Not Org Member
+        if: steps.check_membership.outputs.result == 'false'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const issue = context.payload.issue;
-            const authorAssociation = issue.author_association;
-
-            // Skip if the issue was opened by an org member/maintainer
-            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(authorAssociation)) {
-              console.log(`Skipping comment because the issue opener has association: ${authorAssociation}`);
-              return;
-            }
-
             const issueNumber = issue.number;
             const username = issue.user.login;
+            
+            const slaMessage = `Hello @${username} 👋 Thank you for opening an issue in ACK! A maintainer will triage this issue soon.
+            
+We encourage community contributions, so if you're interested in tackling this yourself or suggesting a solution, please check out our [Contribution](https://github.com/aws-controllers-k8s/community/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/aws-controllers-k8s/community/blob/main/CODE_OF_CONDUCT.md) guidelines.
 
-            // Your markdown message
-            const slaMessage = `Hello @${username} 👋 Thank you for opening an issue in ACK! A maintainer will triage this issue soon.\n\nWe encourage community contributions, so if you're interested in tackling this yourself or suggesting a solution, please check out our [Contribution](https://github.com/aws-controllers-k8s/community/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/aws-controllers-k8s/community/blob/main/CODE_OF_CONDUCT.md) guidelines.\n\nYou can find more information about ACK on our [website](https://aws-controllers-k8s.github.io/community/).`;
-
-            // Create the comment on the opened issue
+You can find more information about ACK on our [website](https://aws-controllers-k8s.github.io/community/).`;
+            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
