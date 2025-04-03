@@ -11,41 +11,30 @@ jobs:
   add-sla-comment:
     runs-on: ubuntu-latest
     steps:
-      - name: Add SLA comment
+      - name: Add Comment
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const issueNumber = context.issue.number;
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            // Get the username of the issue opener
-            const username = context.payload.issue.user.login;
+            const issue = context.payload.issue;
+            const authorAssociation = issue.author_association;
 
-          
-            const collaborators = await github.rest.repos.listCollaborators({
-              owner: owner,
-              repo: repo,
-              affiliation: 'direct',
-              permission: 'push'
-            });
+            // Skip if the issue was opened by an org member/maintainer
+            if (['OWNER', 'MEMBER', 'COLLABORATOR'].includes(authorAssociation)) {
+              console.log(`Skipping comment because the issue opener has association: ${authorAssociation}`);
+              return;
+            }
 
-            // Extract usernames of collaborators
-            const maintainers = collaborators.data.map(collaborator => collaborator.login);
-
-            // Check if the issue opener is a maintainer
-            if (!maintainers.includes(username)) {
+            const issueNumber = issue.number;
+            const username = issue.user.login;
 
             // Your markdown message
-            const slaMessage = `Hello @${username} 👋 Thank you for opening an issue in ACK! The team will review the issue and aim to respond within 1-5 business days. Meanwhile, please read about the [Contribution](https://github.com/aws-controllers-k8s/community/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/aws-controllers-k8s/community/blob/main/CODE_OF_CONDUCT.md) guidelines. You can find out more information about ACK on our [website](https://aws-controllers-k8s.github.io/community/).`;
+            const slaMessage = `Hello @${username} 👋 Thank you for opening an issue in ACK! A maintainer will triage this issue soon.\n\nWe encourage community contributions, so if you're interested in tackling this yourself or suggesting a solution, please check out our [Contribution](https://github.com/aws-controllers-k8s/community/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/aws-controllers-k8s/community/blob/main/CODE_OF_CONDUCT.md) guidelines.\n\nYou can find more information about ACK on our [website](https://aws-controllers-k8s.github.io/community/).`;
 
             // Create the comment on the opened issue
             await github.rest.issues.createComment({
-              owner: owner,
-              repo: repo,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               issue_number: issueNumber,
               body: slaMessage
             });
-            }
-
-
