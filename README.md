@@ -5,7 +5,7 @@
 ![GitHub stars](https://img.shields.io/github/stars/aws-controllers-k8s/community?style=social)
 ![GitHub forks](https://img.shields.io/github/forks/aws-controllers-k8s/community?style=social)
 
-# AWS Controllers for Kubernetes Staging (ACK)
+# AWS Controllers for Kubernetes Staging (ACK - staging)
 
 **AWS Controllers for Kubernetes (ACK)** lets you define and use AWS service
 resources directly from Kubernetes. With ACK, you can take advantage of AWS
