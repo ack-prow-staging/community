@@ -16,22 +16,13 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const username = context.payload.issue.user.login;
-            const org = context.repo.owner;
-            console.log("Checking membership for user:", username, "in org:", org);
-            try {
-              const response = await github.rest.orgs.checkMembershipForUser({
-                org: org,
-                username: username
-              });
-              console.log("Membership check status:", response.status);
-              // If response.status is 204, user is a member
-              return response.status === 204;
-            } catch (error) {
-              console.log("Error during membership check:", error);
-              // If there's an error, assume the user is not a member
-              return false;
-            }
+            const authorAssociation = context.payload.issue.author_association;
+            console.log("Author association:", authorAssociation);
+            
+            // Check if user is a MEMBER or OWNER
+            const isMember = ['OWNER', 'MEMBER'].includes(authorAssociation);
+            console.log("Is member:", isMember);
+            return isMember;
       - name: Add SLA Comment if Not Org Member
         if: steps.check_membership.outputs.result == 'false'
         uses: actions/github-script@v6
